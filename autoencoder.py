@@ -231,7 +231,7 @@ class Autoencoder2D(Autoencoder):
 
         arr_ndim = arr.ndim
 
-        patch_shape = self.filter_size
+        patch_shape = (1, self.num_channels) + self.filter_size
 
         if isinstance(extraction_step, numbers.Number):
             extraction_step = tuple([extraction_step] * arr_ndim)
