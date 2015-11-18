@@ -225,7 +225,7 @@ class Autoencoder2D(Autoencoder):
             else:
                 excerpt = slice(start_idx, start_idx + batch_size)
 
-            yield self.extract_patches(inputs[excerpt][0])
+            yield self.extract_patches(inputs[excerpt])
 
     def extract_patches(self, arr, extraction_step=1):
 
