@@ -250,3 +250,58 @@ class Autoencoder2D(Autoencoder):
         patches = as_strided(arr, shape=shape, strides=strides)
 
         return patches.reshape((np.prod(patch_indices_shape), np.prod(np.array(patch_shape))))
+
+
+class Autoencoder3D(Autoencoder):
+
+    def __init__(self, nodes=32, learning_rate=0.001, num_epochs=500, dropout_rate=0.5, batch_size=1,
+                 learning_rate_decay=1.0, activation=rectify, validate_pct=0.1, momentum=0.9, filter_size=(5, 5, 5),
+                 num_vars=25, num_channels=1, verbose=False):
+
+        super(Autoencoder3D, self).__init__(num_vars=num_vars, num_channels=num_channels, nodes=nodes,
+                                            learning_rate=learning_rate, num_epochs=num_epochs,
+                                            dropout_rate=dropout_rate, batch_size=batch_size,
+                                            learning_rate_decay=learning_rate_decay, activation=activation,
+                                            validate_pct=validate_pct, momentum=momentum, verbose=verbose)
+
+        self.filter_size = filter_size
+
+    def iterate_minibatches(self, inputs, batch_size, shuffle=False):
+
+        if shuffle:
+
+            indices = np.arange(inputs.shape[0])
+            np.random.shuffle(indices)
+
+        for start_idx in range(0, inputs.shape[0] - batch_size + 1, batch_size):
+
+            if shuffle:
+                excerpt = indices[start_idx:start_idx + batch_size]
+            else:
+                excerpt = slice(start_idx, start_idx + batch_size)
+
+            yield self.extract_patches(inputs[excerpt])
+
+    def extract_patches(self, arr, extraction_step=1):
+
+        arr_ndim = arr.ndim
+
+        patch_shape = (1, self.num_channels) + self.filter_size
+
+        if isinstance(extraction_step, numbers.Number):
+            extraction_step = tuple([extraction_step] * arr_ndim)
+
+        patch_strides = arr.strides
+
+        slices = [slice(None, None, st) for st in extraction_step]
+        indexing_strides = arr[slices].strides
+
+        patch_indices_shape = ((np.array(arr.shape) - np.array(patch_shape)) //
+                               np.array(extraction_step)) + 1
+
+        shape = tuple(list(patch_indices_shape) + list(patch_shape))
+        strides = tuple(list(indexing_strides) + list(patch_strides))
+
+        patches = as_strided(arr, shape=shape, strides=strides)
+
+        return patches.reshape((np.prod(patch_indices_shape), np.prod(np.array(patch_shape))))
